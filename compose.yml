@@ -1,0 +1,54 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./src
+      dockerfile: TrackerSupreme.Api/Dockerfile
+    container_name: trackersupreme-api
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Default=Host=db;Database=stats;Username=postgres;Password=postgres
+      - Keycloak__Authority=http://keycloak:8080/realms/stats
+      - Keycloak__ClientId=stats-api
+      - Keycloak__RequireHttpsMetadata=false
+    depends_on:
+      # - db
+      - keycloak
+    networks:
+      - stats-net
+
+  # db:
+  #   image: postgres:16
+  #   container_name: stats-db
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: stats
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - stats-net
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0.2
+    container_name: trackersupreme-keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8888:8080"
+    networks:
+      - stats-net
+
+# volumes:
+  # postgres_data:
+
+networks:
+  stats-net:
